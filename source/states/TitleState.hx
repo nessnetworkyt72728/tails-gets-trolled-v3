@@ -25,14 +25,10 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
-import io.newgrounds.NG;
 import lime.app.Application;
 import openfl.Assets;
-import math.Random;
 import ui.*;
 using StringTools;
-import Shaders;
-import openfl.filters.ShaderFilter;
 
 class TitleState extends MusicBeatState
 {
@@ -43,14 +39,10 @@ class TitleState extends MusicBeatState
 	var credTextShit:Alphabet;
 	var textGroup:FlxGroup;
 	var ngSpr:FlxSprite;
-	var songPos:Float = 0;
 
 	var curWacky:Array<String> = [];
 
 	var wackyImage:FlxSprite;
-	var startedIntro:Bool = false;
-
-	var shit:FlxSound;
 
 	override public function create():Void
 	{
@@ -82,10 +74,11 @@ class TitleState extends MusicBeatState
 
 	var logoBl:FlxSprite;
 	var gfDance:FlxSprite;
+	var speaker:FlxSprite;
 	var danceLeft:Bool = false;
 	var titleText:FlxSprite;
-	var bg:Stage;
-	var highShader:HighEffect;
+	var bg:FlxSprite;
+	var bgLit:FlxSprite;
 
 	function startIntro()
 	{
@@ -102,34 +95,75 @@ class TitleState extends MusicBeatState
 			// music.play();
 		}
 
-		Conductor.changeBPM(90);
+		Conductor.changeBPM(102);
 		persistentUpdate = true;
 
-
-		bg = new Stage(Random.fromArray(Stage.stageNames),EngineData.options,false);// new FlxSprite(FlxG.width, FlxG.height).loadGraphic(Paths.image('titleBG'));
+		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		// bg.antialiasing = true;
+		// bg.setGraphicSize(Std.int(bg.width * 0.6));
+		// bg.updateHitbox();
 		add(bg);
 
-		if(bg.curStage=='highzoneShadow'){
-			highShader = new HighEffect();
-			FlxG.camera.setFilters([new ShaderFilter(highShader.shader)]);
+		if(EngineData.options.oldTitle)
+		{
+			logoBl = new FlxSprite(-150, -100);
+			logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+			logoBl.antialiasing = true;
+			logoBl.animation.addByPrefix('bump', 'logo bumpin', 24);
+			logoBl.animation.play('bump');
+			logoBl.updateHitbox();
 		}
+		else
+		{
+			bg = new FlxSprite(FlxG.width, FlxG.height).loadGraphic(Paths.image('titleBG'));
+			bg.updateHitbox();
+			bg.screenCenter();
+			bg.antialiasing = true;
+			add(bg);
+			bg.visible = true;
 
-		var titleNames = Paths.getDirs("titles");
-		var titleShit = Random.fromArray(titleNames);
-		logoBl = new FlxSprite(0);
-		logoBl.frames = Paths.getSparrowAtlas('titles/${titleShit}/logoBumpin');
-		logoBl.antialiasing = true;
-		logoBl.animation.addByPrefix('bump', 'logo bumpin', 24);
-		logoBl.animation.play('bump');
-		logoBl.setGraphicSize(Std.int(logoBl.width * 0.72));
-		logoBl.scrollFactor.set();
-		logoBl.updateHitbox();
-		logoBl.screenCenter(XY);
+			bgLit = new FlxSprite(FlxG.width, FlxG.height).loadGraphic(Paths.image('titleBGLit'));
+			bgLit.updateHitbox();
+			bgLit.screenCenter();
+			bgLit.antialiasing = true;
+			add(bgLit);
+			bgLit.visible = false;
+
+			logoBl = new FlxSprite(285, -70);
+			logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+			logoBl.antialiasing = true;
+			logoBl.animation.addByPrefix('bump', 'logo bumpin', 24);
+			logoBl.animation.play('bump');
+			logoBl.setGraphicSize(Std.int(logoBl.width * 0.72));
+			logoBl.scrollFactor.set();
+			logoBl.updateHitbox();
+
+			speaker = new FlxSprite(FlxG.width * 0.5, FlxG.height * 0.4);
+			speaker.frames = Paths.getSparrowAtlas('titleSpeaker');
+			speaker.animation.addByPrefix('lit', 'speakers', 24);
+			speaker.animation.addByPrefix('normal', 'alt speakers', 24);
+			speaker.screenCenter(X);
+			speaker.setGraphicSize(Std.int(speaker.width * 0.72));
+			speaker.antialiasing = true;
+			add(speaker);
+
+			speaker.animation.play('normal',true);
+		}
 
 		//i know its wasteful but im a lazy ass
 
-		titleText = new FlxSprite(FlxG.width * 0.099, FlxG.height * 0.825);
-
+		gfDance = new FlxSprite(FlxG.width * 0.4, FlxG.height * 0.07);
+		gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
+		gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
+		gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
+		gfDance.antialiasing = true;
+		if(EngineData.options.oldTitle)
+		{
+			add(gfDance);
+			titleText = new FlxSprite(100, FlxG.height * 0.8);
+		}else{
+			titleText = new FlxSprite(FlxG.width * 0.099, FlxG.height * 0.825);
+		}
 		add(logoBl);
 		titleText.frames = Paths.getSparrowAtlas('titleEnter');
 		titleText.animation.addByPrefix('idle', "Press Enter to Begin0", 24);
@@ -155,7 +189,7 @@ class TitleState extends MusicBeatState
 		blackScreen = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		credGroup.add(blackScreen);
 
-		credTextShit = new Alphabet(0, 0, "Nebula the Zorua\nBepixel\nEcholocated\nWilde", true);
+		credTextShit = new Alphabet(0, 0, "ninjamuffin99\nPhantomArcade\nkawaisprite\nevilsk8er", true);
 		credTextShit.screenCenter();
 
 		// credTextShit.alignment = CENTER;
@@ -174,16 +208,8 @@ class TitleState extends MusicBeatState
 
 		FlxG.mouse.visible = false;
 
-		//CoolUtil.playMenuMusic();
-		//FlxG.sound.music.pause();
-		//shit = FlxG.sound.play(Paths.music('freakyIntro'));
-		FlxG.sound.cache(Paths.music('freakyMenu'));
-		FlxG.sound.playMusic(Paths.music('freakyIntro'));
-		FlxG.sound.music.onComplete= function(){
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
-		}
-		//shit.fadeIn(4, 0, 0.7);
-		startedIntro=true;
+		FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+		FlxG.sound.music.fadeIn(4, 0, 0.7);
 
 		if (initialized)
 			skipIntro();
@@ -212,110 +238,87 @@ class TitleState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		if(startedIntro){
-			if (FlxG.sound.music != null && FlxG.sound.music.playing)
-				Conductor.songPosition = songPos+FlxG.sound.music.time;
-			else{
-				Conductor.songPosition += elapsed*1000;
-				songPos=Conductor.songPosition;
-			}
+		if (FlxG.sound.music != null)
+			Conductor.songPosition = FlxG.sound.music.time;
+		// FlxG.watch.addQuick('amp', FlxG.sound.music.amplitude);
 
-			if(highShader!=null)
-				highShader.update(elapsed);
+		if (FlxG.keys.justPressed.F)
+		{
+			FlxG.fullscreen = !FlxG.fullscreen;
+		}
 
-			// FlxG.watch.addQuick('amp', FlxG.sound.music.amplitude);
+		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER;
 
-			if (FlxG.keys.justPressed.F)
+		#if mobile
+		for (touch in FlxG.touches.list)
+		{
+			if (touch.justPressed)
 			{
-				FlxG.fullscreen = !FlxG.fullscreen;
-			}
-
-			var pressedEnter:Bool = FlxG.keys.justPressed.ENTER;
-
-			#if mobile
-			for (touch in FlxG.touches.list)
-			{
-				if (touch.justPressed)
-				{
-					pressedEnter = true;
-				}
-			}
-			#end
-
-			var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
-
-			if (gamepad != null)
-			{
-				if (gamepad.justPressed.START)
-					pressedEnter = true;
-
-				#if switch
-				if (gamepad.justPressed.B)
-					pressedEnter = true;
-				#end
-			}
-
-			if (pressedEnter && !transitioning && skippedIntro)
-			{
-
-				titleText.animation.play('press',true);
-
-				//bg.visible = false;
-
-
-				FlxG.camera.flash(FlxColor.WHITE, 1, null, true);
-				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
-
-				transitioning = true;
-				// FlxG.sound.music.stop();
-
-				new FlxTimer().start(2, function(tmr:FlxTimer)
-				{
-					// Check if version is outdated
-
-					var version:String = "v" + Application.current.meta.get('version');
-
-					/*if (version.trim() != NGio.GAME_VER_NUMS.trim() && !OutdatedSubState.leftState)
-					{
-						FlxG.switchState(new OutdatedSubState());
-						trace('OLD VERSION!');
-						trace('old ver');
-						trace(version.trim());
-						trace('cur ver');
-						trace(NGio.GAME_VER_NUMS.trim());
-					}
-					else
-					{
-						FlxG.switchState(new MainMenuState());
-					}*/
-					var selection = OptionUtils.options.jukeboxSong;
-					if(selection!=0){
-						FlxG.sound.music.fadeOut(.5, 0, function(twn:FlxTween){
-							Conductor.changeBPM(JukeboxState.songData[selection].bpm);
-							var path = JukeboxState.songData[selection].path;
-							if(OptionUtils.options.isInst)
-								path = JukeboxState.songData[selection].inst;
-
-							FlxG.switchState(new MainMenuState());
-							FlxG.sound.playMusic(CoolUtil.getSound(path));
-							FlxG.sound.music.fadeIn(.5,0,1, function(twn:FlxTween){
-								FlxG.sound.music.fadeTween=null;
-							});
-						});
-					}else{
-						FlxG.switchState(new MainMenuState());
-					}
-				});
-				// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
-			}
-
-			if (pressedEnter && !skippedIntro)
-			{
-				skipIntro();
+				pressedEnter = true;
 			}
 		}
-		if(bg!=null)
-			bg.update(elapsed);
+		#end
+
+		var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
+
+		if (gamepad != null)
+		{
+			if (gamepad.justPressed.START)
+				pressedEnter = true;
+
+			#if switch
+			if (gamepad.justPressed.B)
+				pressedEnter = true;
+			#end
+		}
+
+		if (pressedEnter && !transitioning && skippedIntro)
+		{
+
+			titleText.animation.play('press',true);
+
+			if(!EngineData.options.oldTitle)
+			{
+				speaker.animation.play('lit',true);
+				//bg.visible = false;
+				bgLit.visible = true;
+			}
+
+			FlxG.camera.flash(FlxColor.WHITE, 1, null, true);
+			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
+
+			transitioning = true;
+			// FlxG.sound.music.stop();
+
+			new FlxTimer().start(2, function(tmr:FlxTimer)
+			{
+				// Check if version is outdated
+
+				var version:String = "v" + Application.current.meta.get('version');
+
+				/*if (version.trim() != NGio.GAME_VER_NUMS.trim() && !OutdatedSubState.leftState)
+				{
+					FlxG.switchState(new OutdatedSubState());
+					trace('OLD VERSION!');
+					trace('old ver');
+					trace(version.trim());
+					trace('cur ver');
+					trace(NGio.GAME_VER_NUMS.trim());
+				}
+				else
+				{
+					FlxG.switchState(new MainMenuState());
+				}*/
+				FlxG.switchState(new MainMenuState());
+			});
+			// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
+		}
+
+		if (pressedEnter && !skippedIntro)
+		{
+			skipIntro();
+		}
+
 		super.update(elapsed);
 	}
 
@@ -352,41 +355,63 @@ class TitleState extends MusicBeatState
 	override function beatHit()
 	{
 		super.beatHit();
-		if(bg!=null)
-			bg.beatHit(curBeat);
 
-		logoBl.animation.play('bump',true);
+		logoBl.animation.play('bump');
+		danceLeft = !danceLeft;
+
+		if (danceLeft)
+			gfDance.animation.play('danceRight');
+		else
+			gfDance.animation.play('danceLeft');
 
 		FlxG.log.add(curBeat);
 
 		switch (curBeat)
 		{
 			case 1:
-				createCoolText(['Nebula the Zorua', 'Bepixel', 'LongestSoloEver', 'Wilde', 'Echolocated']);
+				createCoolText(['ninjamuffin99', 'phantomArcade', 'kawaisprite', 'evilsk8er']);
+			// credTextShit.visible = true;
 			case 3:
 				addMoreText('present');
+			// credTextShit.text += '\npresent...';
+			// credTextShit.addText();
 			case 4:
 				deleteCoolText();
+			// credTextShit.visible = false;
+			// credTextShit.text = 'In association \nwith';
+			// credTextShit.screenCenter();
 			case 5:
 				createCoolText(['In association', 'with']);
 			case 7:
-				addMoreText('tailsgetstrolled dot org');
+				addMoreText('newgrounds');
 				ngSpr.visible = true;
+			// credTextShit.text += '\nNewgrounds';
 			case 8:
 				deleteCoolText();
 				ngSpr.visible = false;
+			// credTextShit.visible = false;
+
+			// credTextShit.text = 'Shoutouts Tom Fulp';
+			// credTextShit.screenCenter();
 			case 9:
 				createCoolText([curWacky[0]]);
+			// credTextShit.visible = true;
 			case 11:
 				addMoreText(curWacky[1]);
+			// credTextShit.text += '\nlmao';
 			case 12:
 				deleteCoolText();
+			// credTextShit.visible = false;
+			// credTextShit.text = "Friday";
+			// credTextShit.screenCenter();
 			case 13:
-				addMoreText('Tails');
+				addMoreText('Friday');
+			// credTextShit.visible = true;
 			case 14:
-				addMoreText('Gets');
+				addMoreText('Night');
+			// credTextShit.text += '\nNight';
 			case 15:
-				addMoreText('Trolled');
+				addMoreText('Funkin'); // credTextShit.text += '\nFunkin';
 
 			case 16:
 				skipIntro();
@@ -402,10 +427,6 @@ class TitleState extends MusicBeatState
 			remove(ngSpr);
 
 			FlxG.camera.flash(FlxColor.WHITE, 2);
-			//shit.fadeOut(.2,0);
-			//FlxG.sound.music.play();
-			Conductor.changeBPM(180);
-
 			remove(credGroup);
 			skippedIntro = true;
 		}
