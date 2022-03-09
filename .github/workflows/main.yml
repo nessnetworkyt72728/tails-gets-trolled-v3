@@ -40,6 +40,7 @@ jobs:
           haxelib run lime setup
           haxelib install flixel-tools
           haxelib install flixel-ui
+          haxelib install newgrounds
           haxelib install flixel-addons
           haxelib install tjson
           haxelib install hxjsonast
