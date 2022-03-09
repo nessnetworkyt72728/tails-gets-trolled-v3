@@ -41,6 +41,7 @@ jobs:
           haxelib install flixel-tools
           haxelib install flixel-ui
           haxelib install newgrounds
+          haxelib install hxvm-luajit
           haxelib install flixel-addons
           haxelib install tjson
           haxelib install hxjsonast
@@ -187,6 +188,8 @@ jobs:
           haxelib run lime config JAVA_HOME $JAVA_HOME
           haxelib run lime config ANDROID_SETUP true
           haxelib install flixel-tools
+          haxelib install newgrounds
+          haxelib install hxvm-luajit
           haxelib install flixel-ui 
           haxelib install flixel-addons
           haxelib install hscript
